@@ -13,7 +13,7 @@ struct Args {
 // Parse challenge input into a Vec of Vecs.
 //
 // This implementation uses a straight forward imperative approach.
-fn parse_part_1_input(text: &str) -> Result<Vec<Vec<i32>>> {
+fn parse_input(text: &str) -> Result<Vec<Vec<i32>>> {
     let mut elves = Vec::new();
     let mut elf = Vec::new();
     for line in text.lines() {
@@ -35,7 +35,7 @@ fn parse_part_1_input(text: &str) -> Result<Vec<Vec<i32>>> {
 // Parse challenge input into a Vec of Vecs.
 //
 // This implementation uses a "fancier" more functional approach.
-fn parse_part_1_input_fancy(text: &str) -> Result<Vec<Vec<i32>>> {
+fn parse_input_fancy(text: &str) -> Result<Vec<Vec<i32>>> {
     text.lines()
         .try_fold(vec![vec![]], |mut elves, line| -> Result<Vec<Vec<i32>>> {
             if line.is_empty() {
@@ -71,22 +71,42 @@ fn find_max_calories(elves: &Vec<Vec<i32>>) -> i32 {
 // Find the max calories of any elf.
 //
 // This implementation uses a "fancier" more functional approach.
-fn find_max_calories_fancy(elves: &Vec<Vec<i32>>) -> i32 {
+fn find_max_calories_fancy(elves: &[Vec<i32>]) -> i32 {
     elves
         .iter()
         .fold(i32::MIN, |max, elf| cmp::max(max, elf.iter().sum()))
 }
 
+fn find_top_n_calories(elves: &[Vec<i32>], n: usize) -> Vec<i32> {
+    let mut calories: Vec<_> = elves.iter().map(|elf| elf.iter().sum()).collect();
+
+    // A sort then a reverse has similar or better performance than using
+    // sort_by():
+    // https://stackoverflow.com/questions/60916194/how-to-sort-a-vector-in-descending-order-in-rust
+    calories.sort();
+    calories.reverse();
+
+    calories.resize(n, 0);
+
+    calories
+}
+
 // Compute the answer to part 1 using the imperative methods.
 fn part1(input: &str) -> Result<i32> {
-    let elves = parse_part_1_input(input).unwrap();
+    let elves = parse_input(input)?;
     Ok(find_max_calories(&elves))
 }
 
 // Compute the answer to part 1 using the fancy methods.
 fn part1_fancy(input: &str) -> Result<i32> {
-    let elves = parse_part_1_input_fancy(input).unwrap();
+    let elves = parse_input_fancy(input)?;
     Ok(find_max_calories_fancy(&elves))
+}
+
+fn part2(input: &str) -> Result<i32> {
+    let elves = parse_input_fancy(input)?;
+    let top_calories = find_top_n_calories(&elves, 3);
+    Ok(top_calories.iter().sum())
 }
 
 fn main() -> Result<()> {
@@ -100,6 +120,13 @@ fn main() -> Result<()> {
     assert_eq!(calories, calories_fancy);
 
     println!("[Part 1] Most calories carried by an elf: {}", calories);
+
+    let top_3_calories = part2(&input)?;
+    println!(
+        "[Part 2] Calories carried by top 3 elevs: {}",
+        top_3_calories
+    );
+
     Ok(())
 }
 
@@ -122,7 +149,7 @@ mod test {
     #[test]
     fn test_parse_part_1_input() {
         assert_eq!(
-            parse_part_1_input(EXAMPLE_INPUT_1).unwrap(),
+            parse_input(EXAMPLE_INPUT_1).unwrap(),
             parsed_example_input_1()
         );
     }
@@ -130,7 +157,7 @@ mod test {
     #[test]
     fn test_parse_part_1_input_fancy() {
         assert_eq!(
-            parse_part_1_input_fancy(EXAMPLE_INPUT_1).unwrap(),
+            parse_input_fancy(EXAMPLE_INPUT_1).unwrap(),
             parsed_example_input_1()
         );
     }
@@ -150,5 +177,16 @@ mod test {
     #[test]
     fn test_part1() {
         assert_eq!(part1(EXAMPLE_INPUT_1).unwrap(), 24000);
+    }
+
+    #[test]
+    fn test_find_top_n_calories() {
+        let elves = parsed_example_input_1();
+        assert_eq!(find_top_n_calories(&elves, 3), vec![24000, 11000, 10000]);
+    }
+
+    #[test]
+    fn test_part2() {
+        assert_eq!(part2(EXAMPLE_INPUT_1).unwrap(), 45000);
     }
 }
