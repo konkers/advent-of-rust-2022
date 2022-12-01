@@ -5,7 +5,7 @@ use anyhow::{anyhow, Result};
 // Parse challenge input into a Vec of Vecs.
 //
 // This implementation uses a straight forward imperative approach.
-fn parse_input(text: &str) -> Result<Vec<Vec<i32>>> {
+pub fn parse_input(text: &str) -> Result<Vec<Vec<i32>>> {
     let mut elves = Vec::new();
     let mut elf = Vec::new();
     for line in text.lines() {
@@ -27,7 +27,7 @@ fn parse_input(text: &str) -> Result<Vec<Vec<i32>>> {
 // Parse challenge input into a Vec of Vecs.
 //
 // This implementation uses a "fancier" more functional approach.
-fn parse_input_fancy(text: &str) -> Result<Vec<Vec<i32>>> {
+pub fn parse_input_fancy(text: &str) -> Result<Vec<Vec<i32>>> {
     text.lines()
         .try_fold(vec![vec![]], |mut elves, line| -> Result<Vec<Vec<i32>>> {
             if line.is_empty() {
@@ -46,7 +46,7 @@ fn parse_input_fancy(text: &str) -> Result<Vec<Vec<i32>>> {
 // Find the max calories of any elf.
 //
 // This implementation uses a straight forward imperative approach.
-fn find_max_calories(elves: &Vec<Vec<i32>>) -> i32 {
+pub fn find_max_calories(elves: &Vec<Vec<i32>>) -> i32 {
     let mut max = i32::MIN;
     for elf in elves {
         let mut total_calories = 0;
@@ -63,13 +63,13 @@ fn find_max_calories(elves: &Vec<Vec<i32>>) -> i32 {
 // Find the max calories of any elf.
 //
 // This implementation uses a "fancier" more functional approach.
-fn find_max_calories_fancy(elves: &[Vec<i32>]) -> i32 {
+pub fn find_max_calories_fancy(elves: &[Vec<i32>]) -> i32 {
     elves
         .iter()
         .fold(i32::MIN, |max, elf| cmp::max(max, elf.iter().sum()))
 }
 
-fn find_top_n_calories(elves: &[Vec<i32>], n: usize) -> Vec<i32> {
+pub fn find_top_n_calories(elves: &[Vec<i32>], n: usize) -> Vec<i32> {
     let mut calories: Vec<_> = elves.iter().map(|elf| elf.iter().sum()).collect();
 
     // A sort then a reverse has similar or better performance than using
