@@ -1,4 +1,4 @@
-use std::{fs, ops::RangeInclusive, path::PathBuf, str::FromStr};
+use std::{cmp, fs, ops::RangeInclusive, path::PathBuf, str::FromStr};
 
 use anyhow::{anyhow, Error, Result};
 use clap::Parser;
@@ -10,6 +10,19 @@ use nom::{
     sequence::terminated,
     Finish, IResult,
 };
+
+trait Overlap<T: PartialOrd + Ord + Clone> {
+    fn overlap(&self, range: &RangeInclusive<T>) -> RangeInclusive<T>;
+}
+
+impl<T: PartialOrd + Ord + Clone> Overlap<T> for RangeInclusive<T> {
+    fn overlap(&self, range: &RangeInclusive<T>) -> RangeInclusive<T> {
+        let start = cmp::max(self.start(), range.start());
+        let end = cmp::min(self.end(), range.end());
+
+        start.clone()..=end.clone()
+    }
+}
 
 trait ContainsRange<T: PartialOrd> {
     fn contains_range(&self, range: &RangeInclusive<T>) -> bool;
@@ -39,17 +52,18 @@ impl Pair {
     fn is_completely_overlapping(&self) -> bool {
         self.a.contains_range(&self.b) || self.b.contains_range(&self.a)
     }
-}
 
-impl FromStr for Pair {
-    // the error must be owned as well
-    type Err = Error;
+    fn amount_overlapping(&self) -> u32 {
+        let overlap = &self.a.overlap(&self.b);
+        if overlap.is_empty() {
+            0
+        } else {
+            *overlap.end() - *overlap.start() + 1
+        }
+    }
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Self::parse(s)
-            .finish()
-            .map_err(|e| anyhow!("Error parsing pair: {}", e))
-            .map(|val| val.1)
+    fn is_overlapping(&self) -> bool {
+        self.amount_overlapping() > 0
     }
 }
 
@@ -69,12 +83,34 @@ fn range_value(input: &str) -> IResult<&str, RangeInclusive<u32>> {
     Ok((input, start..=end))
 }
 
-fn solution(input: &str) -> Result<u32> {
+impl FromStr for Pair {
+    // the error must be owned as well
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Self::parse(s)
+            .finish()
+            .map_err(|e| anyhow!("Error parsing pair: {}", e))
+            .map(|val| val.1)
+    }
+}
+
+fn solution_part1(input: &str) -> Result<u32> {
     input
         .lines()
         .map(|line| {
             // Rust bools are guaranteed to be 0 or 1.
             Ok(line.parse::<Pair>()?.is_completely_overlapping() as u32)
+        })
+        .sum()
+}
+
+fn solution_part2(input: &str) -> Result<u32> {
+    input
+        .lines()
+        .map(|line| {
+            // Rust bools are guaranteed to be 0 or 1.
+            Ok(line.parse::<Pair>()?.is_overlapping() as u32)
         })
         .sum()
 }
@@ -89,11 +125,14 @@ fn main() -> Result<()> {
     let args = Args::parse();
     let input = fs::read_to_string(&args.input)?;
 
-    let total = solution(&input)?;
+    let total = solution_part1(&input)?;
     println!(
         "[Part: 1] Number of completely overlapping ranges: {}",
         total
     );
+
+    let total = solution_part2(&input)?;
+    println!("[Part: 2] Amount of overlapping ranges: {}", total);
 
     Ok(())
 }
@@ -165,7 +204,22 @@ mod tests {
     }
 
     #[test]
-    fn test_solution() {
-        assert_eq!(solution(EXAMPLE_INPUT).unwrap(), 2);
+    fn test_overlap() {
+        assert_eq!("2-4,6-8".parse::<Pair>().unwrap().amount_overlapping(), 0);
+        assert_eq!("2-3,4-5".parse::<Pair>().unwrap().amount_overlapping(), 0);
+        assert_eq!("5-7,7-9".parse::<Pair>().unwrap().amount_overlapping(), 1);
+        assert_eq!("2-8,3-7".parse::<Pair>().unwrap().amount_overlapping(), 5);
+        assert_eq!("6-6,4-6".parse::<Pair>().unwrap().amount_overlapping(), 1);
+        assert_eq!("2-6,4-8".parse::<Pair>().unwrap().amount_overlapping(), 3);
+    }
+
+    #[test]
+    fn test_solution_part1() {
+        assert_eq!(solution_part1(EXAMPLE_INPUT).unwrap(), 2);
+    }
+
+    #[test]
+    fn test_solution_part2() {
+        assert_eq!(solution_part2(EXAMPLE_INPUT).unwrap(), 4);
     }
 }
