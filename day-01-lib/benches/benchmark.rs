@@ -1,6 +1,6 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 
-const INPUT: &'static str = include_str!("../../day-01/input.txt");
+const INPUT: &str = include_str!("../../day-01/input.txt");
 
 fn criterion_benchmark(c: &mut Criterion) {
     let elves = day_01_lib::parse_input(INPUT).unwrap();

@@ -105,7 +105,7 @@ pub fn part2(input: &str) -> Result<i32> {
 mod tests {
     use super::*;
 
-    const EXAMPLE_INPUT_1: &'static str = include_str!("example-input-1.txt");
+    const EXAMPLE_INPUT_1: &str = include_str!("example-input-1.txt");
 
     fn parsed_example_input_1() -> Vec<Vec<i32>> {
         vec![

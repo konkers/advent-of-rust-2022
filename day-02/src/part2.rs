@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use anyhow::{anyhow, bail, Error, Result};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Move {
     Rock,
     Paper,
@@ -32,7 +32,7 @@ impl FromStr for Move {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Outcome {
     Loss,
     Tie,
@@ -78,7 +78,7 @@ impl FromStr for Outcome {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct Round {
     opponent: Move,
     outcome: Outcome,
@@ -94,7 +94,7 @@ impl Round {
 impl FromStr for Round {
     type Err = Error;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let moves: Vec<_> = s.split(" ").collect();
+        let moves: Vec<_> = s.split(' ').collect();
         if moves.len() != 2 {
             bail!("'{}' does not contain exactly two moves", s);
         }
@@ -109,14 +109,14 @@ pub fn parse_strategy_guide(s: &str) -> Result<Vec<Round>> {
     s.lines().map(|line| line.parse()).collect()
 }
 
-pub fn game_score(guide: &Vec<Round>) -> i32 {
+pub fn game_score(guide: &[Round]) -> i32 {
     guide.iter().map(|round| round.score()).sum()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    const EXAMPLE_INPUT: &'static str = include_str!("example-input.txt");
+    const EXAMPLE_INPUT: &str = include_str!("example-input.txt");
 
     #[test]
     fn parse_move() {
