@@ -1,0 +1,8 @@
+[package]
+name = "day-06"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.66"
+clap = {version = "4.0.29", features = ["derive"]}
